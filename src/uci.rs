@@ -2,12 +2,15 @@ use std::io::{self, Read, stdin, stdout};
 
 pub fn uci_loop() -> io::Result<()> {
     loop {
-        let input_str = get_input();
+        let input_str = read();
         let input_slice: Vec<&str> = input_str.as_slice()
                                .iter()
                                .map(|x| x.as_str())
                                .collect(); 
         match input_slice.as_slice() {
+            ["uci", ..] => {
+
+            }
             ["quit", ..] => break,
             _ => continue,
         }
@@ -147,7 +150,7 @@ pub fn uci_loop() -> io::Result<()> {
     Ok(())
 }   
 
-pub fn get_input() -> Vec<String> {
+pub fn read() -> Vec<String> {
     let mut input = String::new();
     stdin()
         .read_line(&mut input)
