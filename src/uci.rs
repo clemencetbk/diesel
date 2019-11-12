@@ -1,4 +1,4 @@
-use std::io::{self, Read, stdin, stdout};
+use std::io::{self, Read, Write, stdin, stdout};
 
 pub fn uci_loop() -> io::Result<()> {
     loop {
@@ -157,4 +157,9 @@ pub fn read() -> Vec<String> {
         .expect("Error: could not read input");
     let split = input.split_whitespace();
     split.map(String::from).collect()
+}
+
+pub fn write(output: String) {
+    stdout().write_all(output.as_bytes())
+        .expect("Error: could not read input");
 }
