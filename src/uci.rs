@@ -9,13 +9,12 @@ pub fn uci_loop() -> io::Result<()> {
                                .collect(); 
         match input_slice.as_slice() {
             ["uci", ..] => { 
-                let output = "id\noption\nuciok";
+                println!("id\noption\nuciok\n");
                 // TODO: add engine info and options
-                write(String::from(output));
             }
             ["debug", "on"] => continue, // TODO: implement debug mode
             ["debug", "off"] => continue, // TODO: implement debug mode
-            ["isready", ..] => continue,
+            ["isready", ..] => println!("isready"),
             ["setoption", "name", "button", ..] => continue,
             ["setoption", "name", name, "value", value] => continue,
             ["register", "later", ..] => continue,
@@ -52,9 +51,4 @@ pub fn read() -> Vec<String> {
         .expect("Error: could not read input");
     let split = input.split_whitespace();
     split.map(String::from).collect()
-}
-
-pub fn write(output: String) {
-    stdout().write_all(output.as_bytes())
-        .expect("Error: could not read input");
 }
