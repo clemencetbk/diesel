@@ -3,5 +3,8 @@ mod board;
 mod uci;
 
 fn main() {
-    uci::uci_loop();
+    match uci::uci_loop() {
+        Err(e) => println!("{}", e),
+        _ => ()
+    }
 }

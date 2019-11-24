@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 // Index definitions
 const WHITE: usize = 0;
 const BLACK: usize = 1;
@@ -16,7 +17,7 @@ pub struct Board {
 }
 
 pub fn new() -> Board {      
-    let mut bitboards: [u64; 12] = [0; 12];
+    let bitboards: [u64; 12] = [0; 12];
     init_bitboards(bitboards);
     Board {
         bitboards: bitboards,
@@ -31,7 +32,7 @@ fn init_bitboards(mut bitboards: [u64; 12]) {
             let piecetype = 2 * i;
             let mut shift = 0;
             let mut pawns = 8;
-            if (col == BLACK) {
+            if col == BLACK {
                 shift = 58;
                 pawns = -8;
             }
