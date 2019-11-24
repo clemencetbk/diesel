@@ -1,35 +1,51 @@
-// A collection of bitboards for each piece type/colour
+// Index definitions
+const WHITE: usize = 0;
+const BLACK: usize = 1;
+
+const PAWN: usize = 2;
+const ROOK: usize = 4;
+const KNIGHT: usize = 6;
+const BISHOP: usize = 8;
+const KING: usize = 10;
+const QUEEN: usize = 12;
+
 pub struct Board {
-    pub white_pawn: u64,
-    pub white_rook: u64,
-    pub white_knight: u64,
-    pub white_bishop: u64,
-    pub white_king: u64,
-    pub white_queen: u64,
-    
-    pub black_pawn: u64,
-    pub black_rook: u64,
-    pub black_knight: u64,
-    pub black_bishop: u64,
-    pub black_king: u64,
-    pub black_queen: u64
+    pub bitboards: [u64; 12],
+    pub castling_rights: u8,
+    pub en_passant: u8
 }
 
-pub fn new() -> Board {       
+pub fn new() -> Board {      
+    let mut bitboards: [u64; 12] = [0; 12];
+    init_bitboards(bitboards);
     Board {
-        white_pawn: (0b11111111 << 8),
-        white_rook: 0b10000001,
-        white_knight: 0b01000010,
-        white_bishop: 0b00100100,
-        white_king: 0b00010000,
-        white_queen: 0b00001000,
-        
-        black_pawn: (0b11111111 << 50),
-        black_rook: (0b10000001 << 58),
-        black_knight: (0b01000010 << 58),
-        black_bishop: (0b00100100 << 58), 
-        black_king: (0b00010000 << 58),
-        black_queen: (0b00001000 << 58),
+        bitboards: bitboards,
+        castling_rights: 0,
+        en_passant: 0
+    }
+}
 
+fn init_bitboards(mut bitboards: [u64; 12]) {
+    for col in 0..2 {
+        for i in 1..7 {
+            let piecetype = 2 * i;
+            let mut shift = 0;
+            let mut pawns = 8;
+            if (col == BLACK) {
+                shift = 58;
+                pawns = -8;
+            }
+            let mut b: u64 = 0;
+            match piecetype {
+                PAWN => b = 0b11111111 << (shift + pawns),
+                ROOK => b = 0b10000001 << shift,
+                KNIGHT => b = 0b01000010 << shift,
+                BISHOP => b = 0b00100100 << shift,
+                KING => b =  0b00010000 << shift,
+                QUEEN => b = 0b00001000 << shift,
+                _ => ()
+            }
+            bitboards[col & piecetype] = b;
+        }
     }
 }
