@@ -16,13 +16,15 @@ pub struct Board {
     pub en_passant: u8
 }
 
-pub fn new() -> Board {      
-    let bitboards: [u64; 12] = [0; 12];
-    init_bitboards(bitboards);
-    Board {
-        bitboards: bitboards,
-        castling_rights: 0,
-        en_passant: 0
+impl Board {
+    pub fn new() -> Board {      
+        let bitboards: [u64; 12] = [0; 12];
+        init_bitboards(bitboards);
+        Board {
+            bitboards: bitboards,
+            castling_rights: 0,
+            en_passant: 0
+        }
     }
 }
 
@@ -46,7 +48,39 @@ fn init_bitboards(mut bitboards: [u64; 12]) {
                 QUEEN => b = 0b00001000 << shift,
                 _ => ()
             }
-            bitboards[col & piecetype] = b;
+            bitboards[col | piecetype] = b;
         }
+    }
+}
+
+fn from_fen(fen: &String, board: &mut Board) {
+  // FEN example:  rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
+  // lower case: black; upper case: white
+    let mut shift_file = 0;
+    let mut shift_rank = 0;
+    let mut col = WHITE;
+    let mut piecetype = PAWN;
+    let bytes = fen.as_bytes();
+    for (_, &item) in bytes.iter().enumerate() {
+        if item == b'/' {
+            shift_file += 8;
+            //return &fen[0..i];
+        } else if item == b' ' {
+
+        } else {
+            match (item as char).to_lowercase().to_string().as_ref() {
+                "r" => piecetype = ROOK,
+                "n" => piecetype = KNIGHT,
+                "b" => piecetype = BISHOP,
+                "q" => piecetype = QUEEN,
+                "k" => piecetype = KING,
+                _ => ()
+            }
+            if (item as char).is_lowercase() {
+                col = BLACK;
+            }
+            shift_rank += 1;
+        }
+        board.bitboards[col | piecetype] = 1 << shift_rank + shift_file;
     }
 }
