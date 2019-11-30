@@ -11,24 +11,26 @@ const KING: usize = 10;
 const QUEEN: usize = 12;
 
 pub struct Board {
-    pub bitboards: [u64; 12],
+    pub bitboards: [u64; 14],
     pub castling_rights: u8,
     pub en_passant: u8
 }
 
 impl Board {
     pub fn new() -> Board {      
-        let bitboards: [u64; 12] = [0; 12];
-        init_bitboards(bitboards);
-        Board {
+        let bitboards: [u64; 14] = [0; 14];
+        let mut board = Board {
             bitboards: bitboards,
             castling_rights: 0,
             en_passant: 0
-        }
+        };
+        let init = String::from("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+        from_fen(&init, &mut board);
+        board
     }
 }
 
-fn init_bitboards(mut bitboards: [u64; 12]) {
+fn init_bitboards(mut bitboards: [u64; 14]) {
     for col in 0..2 {
         for i in 1..7 {
             let piecetype = 2 * i;
@@ -48,13 +50,12 @@ fn init_bitboards(mut bitboards: [u64; 12]) {
                 QUEEN => b = 0b00001000 << shift,
                 _ => ()
             }
-            bitboards[col | piecetype] = b;
+            bitboards[col & piecetype] = b;
         }
     }
 }
 
 fn from_fen(fen: &String, board: &mut Board) {
-  // FEN example:  rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
   // lower case: black; upper case: white
     let mut shift_file = 0;
     let mut shift_rank = 0;
@@ -63,10 +64,12 @@ fn from_fen(fen: &String, board: &mut Board) {
     let bytes = fen.as_bytes();
     for (_, &item) in bytes.iter().enumerate() {
         if item == b'/' {
-            shift_file += 8;
-            //return &fen[0..i];
+            continue;
         } else if item == b' ' {
-
+            break;
+            // TODO: Handle additional info: castling rights, en passant, half move, full move
+        } else if (item as char).is_digit(10) {
+            shift_rank = (item as char).to_digit(10).unwrap();
         } else {
             match (item as char).to_lowercase().to_string().as_ref() {
                 "r" => piecetype = ROOK,
@@ -79,8 +82,12 @@ fn from_fen(fen: &String, board: &mut Board) {
             if (item as char).is_lowercase() {
                 col = BLACK;
             }
-            shift_rank += 1;
+            board.bitboards[col | piecetype] = 1 << (shift_rank + shift_file * 8);
+            shift_rank += 1; 
         }
-        board.bitboards[col | piecetype] = 1 << shift_rank + shift_file;
+        if shift_rank >= 8 {
+            shift_rank = shift_rank % 8;
+            shift_file += 1;
+        }
     }
 }
