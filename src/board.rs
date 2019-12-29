@@ -1,19 +1,21 @@
 #![allow(dead_code)]
 // Index definitions
-const WHITE: usize = 0;
-const BLACK: usize = 1;
+pub const WHITE: usize = 0;
+pub const BLACK: usize = 1;
 
-const PAWN: usize = 2;
-const ROOK: usize = 4;
-const KNIGHT: usize = 6;
-const BISHOP: usize = 8;
-const KING: usize = 10;
-const QUEEN: usize = 12;
+pub const PAWN: usize = 2;
+pub const ROOK: usize = 4;
+pub const KNIGHT: usize = 6;
+pub const BISHOP: usize = 8;
+pub const KING: usize = 10;
+pub const QUEEN: usize = 12;
 
 pub struct Board {
     pub bitboards: [u64; 14],
     pub castling_rights: u8,
-    pub en_passant: u8
+    pub en_passant: u8,
+    pub turn: u8,
+    pub half_moves: u8
 }
 
 impl Board {
@@ -22,7 +24,9 @@ impl Board {
         let mut board = Board {
             bitboards: bitboards,
             castling_rights: 0,
-            en_passant: 0
+            en_passant: 0,
+            turn: 0,
+            half_moves: 0
         };
         let init = String::from("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
         from_fen(&init, &mut board);
@@ -50,13 +54,14 @@ fn init_bitboards(mut bitboards: [u64; 14]) {
                 QUEEN => b = 0b00001000 << shift,
                 _ => ()
             }
-            bitboards[col & piecetype] = b;
+            bitboards[col | piecetype] = b;
         }
     }
 }
 
-fn from_fen(fen: &String, board: &mut Board) {
+pub fn from_fen(fen: &String, board: &mut Board) {
   // lower case: black; upper case: white
+    board.bitboards = [0; 14]; // re-init bitboards 
     let mut shift_file = 0;
     let mut shift_rank = 0;
     let mut col = WHITE;
