@@ -62,8 +62,7 @@ fn init_bitboards(mut bitboards: [u64; 14]) {
 pub fn from_fen(fen: &String, board: &mut Board) {
   // lower case: black; upper case: white
     board.bitboards = [0; 14]; // re-init bitboards 
-    let mut shift_file = 0;
-    let mut shift_rank = 0;
+    let mut shift = 0;
     let mut col;
     let mut piecetype = PAWN;
     let bytes = fen.as_bytes();
@@ -74,7 +73,7 @@ pub fn from_fen(fen: &String, board: &mut Board) {
             break;
             // TODO: Handle additional info: castling rights, en passant, half move, full move
         } else if (item as char).is_digit(10) {
-            shift_rank = (item as char).to_digit(10).unwrap();
+            shift += (item as char).to_digit(10).unwrap();
         } else {
             match (item as char).to_lowercase().to_string().as_ref() {
                 "r" => piecetype = ROOK,
@@ -89,12 +88,8 @@ pub fn from_fen(fen: &String, board: &mut Board) {
             } else {
                 col = WHITE;
             }
-            board.bitboards[col | piecetype] = 1 << (shift_rank + shift_file * 8);
-            shift_rank += 1; 
-        }
-        if shift_rank >= 8 {
-            shift_rank = shift_rank % 8;
-            shift_file += 1;
+            board.bitboards[col | piecetype] = 1 << shift;
+            shift += 1; 
         }
     }
 }
