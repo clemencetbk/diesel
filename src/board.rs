@@ -64,7 +64,7 @@ pub fn from_fen(fen: &String, board: &mut Board) {
     board.bitboards = [0; 14]; // re-init bitboards 
     let mut shift_file = 0;
     let mut shift_rank = 0;
-    let mut col = WHITE;
+    let mut col;
     let mut piecetype = PAWN;
     let bytes = fen.as_bytes();
     for (_, &item) in bytes.iter().enumerate() {
