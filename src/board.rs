@@ -86,6 +86,8 @@ pub fn from_fen(fen: &String, board: &mut Board) {
             }
             if (item as char).is_lowercase() {
                 col = BLACK;
+            } else {
+                col = WHITE;
             }
             board.bitboards[col | piecetype] = 1 << (shift_rank + shift_file * 8);
             shift_rank += 1; 
