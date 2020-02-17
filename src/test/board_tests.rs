@@ -24,7 +24,6 @@ fn test_fen_few() {
     from_fen(&init, &mut b);
     for i in 0..14 {
         if (i != ROOK | BLACK) && (i != KNIGHT | WHITE) && (i != QUEEN | WHITE) {
-            println!("{}", i);
             assert_eq!(b.bitboards[i], 0);
         }
     }

@@ -65,12 +65,21 @@ pub fn from_fen(fen: &String, board: &mut Board) {
     let mut shift = 0;
     let mut col;
     let mut piecetype = PAWN;
+    let mut spaces = 0;
     let bytes = fen.as_bytes();
     for (_, &item) in bytes.iter().enumerate() {
         if item == b'/' {
             continue;
         } else if item == b' ' {
-            break;
+            spaces += 1;
+            match spaces {
+                1 => (), // turn
+                2 => (), // castling rights
+                3 => (), // en passant
+                4 => (), // full turn
+                5 => (), // half turn
+                _ => (),
+            }
             // TODO: Handle additional info: castling rights, en passant, half move, full move
         } else if (item as char).is_digit(10) {
             shift += (item as char).to_digit(10).unwrap();
