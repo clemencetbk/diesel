@@ -67,10 +67,12 @@ pub fn from_fen(fen: &String, board: &mut Board) {
     let mut piecetype = PAWN;
     let mut spaces = 0;
     let bytes = fen.as_bytes();
+    let mut is_piece_placement = true;
     for (_, &item) in bytes.iter().enumerate() {
         if item == b'/' {
             continue;
         } else if item == b' ' {
+            is_piece_placement = false;
             spaces += 1;
             match spaces {
                 1 => (), // turn
@@ -83,7 +85,7 @@ pub fn from_fen(fen: &String, board: &mut Board) {
             // TODO: Handle additional info: castling rights, en passant, half move, full move
         } else if (item as char).is_digit(10) {
             shift += (item as char).to_digit(10).unwrap();
-        } else {
+        } else if is_piece_placement {
             match (item as char).to_lowercase().to_string().as_ref() {
                 "r" => piecetype = ROOK,
                 "n" => piecetype = KNIGHT,
