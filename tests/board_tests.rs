@@ -4,12 +4,6 @@ extern crate diesel;
 pub use diesel::board::*;
 
 #[test]
-fn test() { // TODO: write tests
-    let b = Board::new();
-    assert_eq!(b.castling_rights, 0);
-}
-
-#[test]
 fn test_fen_empty() {
     let mut b = Board::new();
     let init = String::from("8/8/8/8/8/8/8/8 w KQkq - 0 1");
