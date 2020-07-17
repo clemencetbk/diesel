@@ -59,22 +59,23 @@ fn init_bitboards(mut bitboards: [u64; 14]) {
     }
 }
 
+// Accept string in FEN format modify board to store information from the string.
+// [board information] [current turn] [castling rights] [en passant] [halfmove clock] [fullmove clock]
+// See https://en.wikipedia.org/wiki/Forsyth%E2%80%93Edwards_Notation
 pub fn from_fen(fen: &String, board: &mut Board) {
-  // lower case: black; upper case: white
+    // lower case: black; upper case: white
     board.bitboards = [0; 14]; // re-init bitboards 
     let mut shift = 0;
-    let mut col;
-    let mut piecetype = PAWN;
     let mut spaces = 0;
     let bytes = fen.as_bytes();
-    let mut is_piece_placement = true;
     for (_, &item) in bytes.iter().enumerate() {
         if item == b'/' {
             continue;
         } else if item == b' ' {
-            is_piece_placement = false;
             spaces += 1;
+        } else {
             match spaces {
+                0 => board_from_fen(item, board, &mut shift), // board information
                 1 => (), // turn
                 2 => (), // castling rights
                 3 => (), // en passant
@@ -82,25 +83,50 @@ pub fn from_fen(fen: &String, board: &mut Board) {
                 5 => (), // half turn
                 _ => (),
             }
-            // TODO: Handle additional info: castling rights, en passant, half move, full move
-        } else if (item as char).is_digit(10) {
-            shift += (item as char).to_digit(10).unwrap();
-        } else if is_piece_placement {
-            match (item as char).to_lowercase().to_string().as_ref() {
-                "r" => piecetype = ROOK,
-                "n" => piecetype = KNIGHT,
-                "b" => piecetype = BISHOP,
-                "q" => piecetype = QUEEN,
-                "k" => piecetype = KING,
-                _ => ()
-            }
-            if (item as char).is_lowercase() {
-                col = BLACK;
-            } else {
-                col = WHITE;
-            }
-            board.bitboards[col | piecetype] = 1 << shift;
-            shift += 1; 
         }
     }
+}
+
+fn board_from_fen(item: u8, board: &mut Board, shift_ref: &mut u32) {
+    let mut piecetype = PAWN;
+    let col;
+    if (item as char).is_digit(10) { 
+        *shift_ref += (item as char).to_digit(10).unwrap();
+    } else {
+        match (item as char).to_lowercase().to_string().as_ref() {
+            "r" => piecetype = ROOK,
+            "n" => piecetype = KNIGHT,
+            "b" => piecetype = BISHOP,
+            "q" => piecetype = QUEEN,
+            "k" => piecetype = KING,
+            _ => ()
+            }
+                if (item as char).is_lowercase() {
+                    col = BLACK;
+                } else {
+                    col = WHITE;
+                }
+                board.bitboards[col | piecetype] = 1 << *shift_ref;
+                *shift_ref += 1; 
+            }
+}
+
+fn turn_from_fen() {
+
+}
+
+fn castling_rights() {
+
+}
+
+fn en_passant() {
+
+}
+
+fn full_turn() {
+
+}
+
+fn half_turn() {
+
 }
