@@ -87,6 +87,7 @@ pub fn from_fen(fen: &String, board: &mut Board) {
     }
 }
 
+// Helper function to parse board information from chars of the FEN string
 fn board_from_fen(item: u8, board: &mut Board, shift_ref: &mut u32) {
     let mut piecetype = PAWN;
     let col;
@@ -100,15 +101,15 @@ fn board_from_fen(item: u8, board: &mut Board, shift_ref: &mut u32) {
             "q" => piecetype = QUEEN,
             "k" => piecetype = KING,
             _ => ()
-            }
-                if (item as char).is_lowercase() {
-                    col = BLACK;
-                } else {
-                    col = WHITE;
-                }
-                board.bitboards[col | piecetype] = 1 << *shift_ref;
-                *shift_ref += 1; 
-            }
+        }
+        if (item as char).is_lowercase() {
+            col = BLACK;
+        } else {
+            col = WHITE;
+        }
+        board.bitboards[col | piecetype] = 1 << *shift_ref;
+        *shift_ref += 1; 
+    }
 }
 
 fn turn_from_fen() {
