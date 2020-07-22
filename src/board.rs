@@ -1,14 +1,20 @@
 #![allow(dead_code)]
 // Index definitions
-pub const WHITE: usize = 0;
-pub const BLACK: usize = 1;
+pub const WHITE: u8 = 0;
+pub const BLACK: u8 = 1;
 
-pub const PAWN: usize = 2;
-pub const ROOK: usize = 4;
-pub const KNIGHT: usize = 6;
-pub const BISHOP: usize = 8;
-pub const KING: usize = 10;
-pub const QUEEN: usize = 12;
+pub const PAWN: u8 = 2;
+pub const ROOK: u8 = 4;
+pub const KNIGHT: u8 = 6;
+pub const BISHOP: u8 = 8;
+pub const KING: u8 = 10;
+pub const QUEEN: u8 = 12;
+
+// For castling rights
+pub const WHITE_KING: u8 = 1;
+pub const WHITE_QUEEN: u8 = 2;
+pub const BLACK_KING: u8 = 4;
+pub const BLACK_QUEEN: u8 = 8;
 
 pub struct Board {
     pub bitboards: [u64; 14],
@@ -34,73 +40,112 @@ impl Board {
     }
 }
 
-fn init_bitboards(mut bitboards: [u64; 14]) {
-    for col in 0..2 {
-        for i in 1..7 {
-            let piecetype = 2 * i;
-            let mut shift = 0;
-            let mut pawns = 8;
-            if col == BLACK {
-                shift = 58;
-                pawns = -8;
-            }
-            let mut b: u64 = 0;
-            match piecetype {
-                PAWN => b = 0b11111111 << (shift + pawns),
-                ROOK => b = 0b10000001 << shift,
-                KNIGHT => b = 0b01000010 << shift,
-                BISHOP => b = 0b00100100 << shift,
-                KING => b =  0b00010000 << shift,
-                QUEEN => b = 0b00001000 << shift,
-                _ => ()
-            }
-            bitboards[col | piecetype] = b;
-        }
-    }
-}
-
+// Accept string in FEN format modify board to store information from the string.
+// [board information] [current turn] [castling rights] [en passant] [halfmove clock] [fullmove clock]
+// See https://en.wikipedia.org/wiki/Forsyth%E2%80%93Edwards_Notation
 pub fn from_fen(fen: &String, board: &mut Board) {
   // lower case: black; upper case: white
     board.bitboards = [0; 14]; // re-init bitboards 
-    let mut shift = 0;
+    let fen_str = fen.to_string();
+    let mut tokens = fen_str.split_whitespace();
+
+    let mut get_next = || -> &str {tokens.next().unwrap()};
+
+    let board_info = get_next();
+    let turn = get_next();
+    let castling_rights = get_next();
+    let en_passant = get_next();
+    let half_moves = get_next();
+    // skip fullmove clock as we won't use it
+
+    set_board(board_info, board);
+    set_turn(turn, board);
+    set_castling_rights(castling_rights, board);
+    set_en_passant(en_passant, board);
+    set_half_moves(half_moves, board);
+}
+
+
+// Helper functions to parse information
+
+fn set_board(board_str: &str, board: &mut Board) {
+    let mut piecetype;
     let mut col;
-    let mut piecetype = PAWN;
-    let mut spaces = 0;
-    let bytes = fen.as_bytes();
-    let mut is_piece_placement = true;
-    for (_, &item) in bytes.iter().enumerate() {
-        if item == b'/' {
-            continue;
-        } else if item == b' ' {
-            is_piece_placement = false;
-            spaces += 1;
-            match spaces {
-                1 => (), // turn
-                2 => (), // castling rights
-                3 => (), // en passant
-                4 => (), // full turn
-                5 => (), // half turn
-                _ => (),
-            }
-            // TODO: Handle additional info: castling rights, en passant, half move, full move
-        } else if (item as char).is_digit(10) {
-            shift += (item as char).to_digit(10).unwrap();
-        } else if is_piece_placement {
-            match (item as char).to_lowercase().to_string().as_ref() {
+    let mut shift = 0;
+    println!("{}", board_str);
+    for (_, &curr_byte) in board_str.as_bytes().iter().enumerate() {
+        let curr_char = curr_byte as char;
+        if curr_char.is_digit(10) {
+            shift += curr_char.to_digit(10).unwrap();
+        } else {
+            match curr_char.to_lowercase().to_string().as_ref() {
+                "p" => piecetype = PAWN,
                 "r" => piecetype = ROOK,
                 "n" => piecetype = KNIGHT,
                 "b" => piecetype = BISHOP,
                 "q" => piecetype = QUEEN,
                 "k" => piecetype = KING,
-                _ => ()
+                _ => continue
             }
-            if (item as char).is_lowercase() {
+            if curr_char.is_lowercase() {
                 col = BLACK;
             } else {
                 col = WHITE;
             }
-            board.bitboards[col | piecetype] = 1 << shift;
+            board.bitboards[(col | piecetype) as usize] = 1 << shift;
             shift += 1; 
         }
     }
+}
+
+fn set_turn(turn: &str, board: &mut Board) {
+    match turn.to_lowercase().to_string().as_ref() {
+        "w" => board.turn = WHITE,
+        "b" => board.turn = BLACK,
+        _ => ()
+    }
+}
+
+fn set_castling_rights(castling_rights: &str, board: &mut Board) {
+    board.castling_rights = 0;
+    for &item in castling_rights.as_bytes().iter() {
+        match (item as char).to_string().as_ref() {
+            "k" => board.castling_rights |= BLACK_KING,
+            "q" => board.castling_rights |= BLACK_QUEEN,
+            "K" => board.castling_rights |= WHITE_KING,
+            "Q" => board.castling_rights |= WHITE_QUEEN,
+            _ => ()
+        }
+    }
+}
+
+fn set_en_passant(en_passant: &str, board: &mut Board) {
+    // en passant will either "-" or a letter followed by a number 1-8, like "e6"
+    // en passant square is stored with a number: enumerate all positions as: a1 -> 1, ... a8 -> 8, b1 -> 9, b2 -> 10, ...
+    // the letter (col) indicates how many times 8
+    // the number (row) indicates how much to add for the remainder
+    if en_passant == "-" {
+        board.en_passant = 0;
+        return
+    }
+    let mut col = 0;
+    match en_passant.chars().nth(0).unwrap() {
+        'a' => col = 0,
+        'b' => col = 1,
+        'c' => col = 2,
+        'd' => col = 3,
+        'e' => col = 4,
+        'f' => col = 5,
+        'g' => col = 6,
+        'h' => col = 7,
+        _ => ()
+    }
+
+    let row = en_passant.chars().nth(1).unwrap().to_digit(10).unwrap() as u8;
+
+    board.en_passant = col * 8 + row;
+}
+
+fn set_half_moves(half_moves: &str, board: &mut Board) {
+    board.half_moves = half_moves.parse::<u8>().unwrap();
 }

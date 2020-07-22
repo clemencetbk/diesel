@@ -20,10 +20,15 @@ fn test_fen_few() {
     from_fen(&init, &mut b);
     for i in 0..14 {
         if (i != ROOK | BLACK) && (i != KNIGHT | WHITE) && (i != QUEEN | WHITE) {
-            assert_eq!(b.bitboards[i], 0);
+            assert_eq!(b.bitboards[i as usize], 0);
         }
     }
-    assert_eq!(b.bitboards[ROOK | BLACK], 1);
-    assert_eq!(b.bitboards[KNIGHT | WHITE], 1 << 57);
-    assert_eq!(b.bitboards[QUEEN | WHITE], 1 << 61);
+    assert_eq!(get_bitboard(&b, ROOK, BLACK), 1);
+    assert_eq!(get_bitboard(&b, KNIGHT, WHITE), 1 << 57);
+    assert_eq!(get_bitboard(&b, QUEEN, WHITE), 1 << 61);
+}
+
+// Helper function for indexing into board's bitboards
+fn get_bitboard(board: &Board, piecetype: u8, colour: u8) -> u64 {
+    board.bitboards[(piecetype | colour) as usize]
 }
