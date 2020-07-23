@@ -16,7 +16,7 @@ fn test_fen_empty() {
 #[test]
 fn test_fen_few() {
     let mut b = Board::new();
-    let init = String::from("r7/8/8/8/8/8/8/1N3Q2 w KQkq - 0 1");
+    let init = String::from("r7/8/8/8/8/8/8/1N3Q2 w Kq b2 1 1");
     from_fen(&init, &mut b);
     for i in 0..14 {
         if (i != ROOK | BLACK) && (i != KNIGHT | WHITE) && (i != QUEEN | WHITE) {
@@ -26,6 +26,11 @@ fn test_fen_few() {
     assert_eq!(get_bitboard(&b, ROOK, BLACK), 1);
     assert_eq!(get_bitboard(&b, KNIGHT, WHITE), 1 << 57);
     assert_eq!(get_bitboard(&b, QUEEN, WHITE), 1 << 61);
+
+    assert_eq!(b.turn, WHITE);
+    assert_eq!(b.castling_rights, BLACK_QUEEN | WHITE_KING);
+    assert_eq!(b.en_passant, 10);
+    assert_eq!(b.half_moves, 1);
 }
 
 // Helper function for indexing into board's bitboards
