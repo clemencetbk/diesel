@@ -72,7 +72,6 @@ fn set_board(board_str: &str, board: &mut Board) {
     let mut piecetype;
     let mut col;
     let mut shift = 0;
-    println!("{}", board_str);
     for (_, &curr_byte) in board_str.as_bytes().iter().enumerate() {
         let curr_char = curr_byte as char;
         if curr_char.is_digit(10) {

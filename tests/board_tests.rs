@@ -1,5 +1,3 @@
-extern crate diesel;
-
 #[cfg(test)]
 pub use diesel::board::*;
 
